@@ -25,14 +25,16 @@ install : tetris.a snake.a | build_dir
 	# doxygen
 	$(CC) $(CFLAGS) $(PROJECT)_cli.cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/tetris_cli $(LIB_FLAGS) -DTETRIS=1
 	$(CC) $(CFLAGS) $(PROJECT)_cli.cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/snake_cli $(LIB_FLAGS) -DSNAKE=1
-	mkdir tmp && cd tmp && cmake ../cmake_snake_desktop && make && cp snake_desktop ../build/snake_desktop
-	cd ..
+	rm -rf tmp && mkdir tmp && cd tmp && cmake ../cmake_snake_desktop && make && cp snake_desktop ../build/snake_desktop
+	sed -i '3s/^/#define TETRIS\n/' controller/controller.h
+	rm -rf tmp && mkdir tmp && cd tmp && cmake ../cmake_tetris_desktop && make && cp tetris_desktop ../build/tetris_desktop
+	sed -i '3d' controller/controller.h
 	rm -rf tmp
 	rm -rf $(BUILD_DIR)/tetris.a
 	rm -rf $(BUILD_DIR)/snake.a
 
 tetris.a : build_dir
-	$(CC) $(CFLAGS) -c brick_game/tetris/tetris.c -o $(BUILD_DIR)/tetris.o
+	$(CC) $(CFLAGS) -c brick_game/tetris/tetris.cpp -o $(BUILD_DIR)/tetris.o
 	ar rc $(BUILD_DIR)/tetris.a $(BUILD_DIR)/tetris.o
 	ranlib $(BUILD_DIR)/tetris.a
 	rm -rf $(BUILD_DIR)/tetris.o

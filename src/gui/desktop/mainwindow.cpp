@@ -28,8 +28,8 @@ GameField::GameField() {
   setFixedSize(200, 400);
   setFocusPolicy(Qt::StrongFocus);
 
-  fieldSizeX = width() / snakeItemSize;
-  fieldSizeY = height() / snakeItemSize;
+  fieldSizeX = width() / cellSize;
+  fieldSizeY = height() / cellSize;
 
   params = new GameParams_t();
   data = new GameInfo_t();
@@ -49,11 +49,11 @@ void GameField::paintEvent(QPaintEvent *event) {
   QBrush infoBrush(QColor(200, 200, 200), Qt::SolidPattern);
   QBrush color1CyanBrush(QColor(0, 255, 255), Qt::SolidPattern);
   QBrush color2BlueBrush(QColor(255, 100, 255), Qt::SolidPattern);
-  QBrush color3OrangeBrush(QColor(0, 0, 255), Qt::SolidPattern);
+  QBrush color3OrangeBrush(QColor(255, 165, 0), Qt::SolidPattern);
   QBrush color4YellowBrush(QColor(255, 255, 0), Qt::SolidPattern);
   QBrush color5GreenBrush(QColor(0, 128, 0), Qt::SolidPattern);
   QBrush color6MagentaBrush(QColor(255, 0, 255), Qt::SolidPattern);
-  QBrush color7Brush(QColor(255, 0, 0), Qt::SolidPattern);
+  QBrush color7RedBrush(QColor(255, 0, 0), Qt::SolidPattern);
 
   QPainter painter;
   painter.begin(this);
@@ -63,32 +63,37 @@ void GameField::paintEvent(QPaintEvent *event) {
   painter.drawRect(0, 0, width(), height());
   painter.setPen(QColor(0, 0, 0));
 
-  for (size_t row = 0; row < FIELD_HEIGHT; ++row) {
-    for (size_t col = 0; col < FIELD_WIDTH; ++col) {
+  for (size_t row = BORDER_SIZE; row < FIELD_HEIGHT - BORDER_SIZE; ++row) {
+    for (size_t col = BORDER_SIZE; col < FIELD_WIDTH - BORDER_SIZE; ++col) {
       if (params->data->field[row][col]) {
-        if (params->data->field[row][col] == 1) {
-          painter.setBrush(color1CyanBrush);
+        switch (params->data->field[row][col]) {
+          case 1:
+            painter.setBrush(color1CyanBrush);
+            break;
+          case 2:
+            painter.setBrush(color2BlueBrush);
+            break;
+          case 3:
+            painter.setBrush(color3OrangeBrush);
+            break;
+          case 4:
+            painter.setBrush(color4YellowBrush);
+            break;
+          case 5:
+            painter.setBrush(color5GreenBrush);
+            break;
+          case 6:
+            painter.setBrush(color6MagentaBrush);
+            break;
+          case 7:
+            painter.setBrush(color7RedBrush);
+            break;
+          default:
+            painter.setBrush(gameFieldBrush);
+            break;
         }
-        if (params->data->field[row][col] == 2) {
-          painter.setBrush(color2BlueBrush);
-        }
-        if (params->data->field[row][col] == 3) {
-          painter.setBrush(color3OrangeBrush);
-        }
-        if (params->data->field[row][col] == 4) {
-          painter.setBrush(color4YellowBrush);
-        }
-        if (params->data->field[row][col] == 5) {
-          painter.setBrush(color5GreenBrush);
-        }
-        if (params->data->field[row][col] == 6) {
-          painter.setBrush(color6MagentaBrush);
-        }
-        if (params->data->field[row][col] == 7) {
-          painter.setBrush(color7Brush);
-        }
-        painter.drawRect(col * snakeItemSize, row * snakeItemSize,
-                         snakeItemSize, snakeItemSize);
+        painter.drawRect((col - BORDER_SIZE) * cellSize,
+                         (row - BORDER_SIZE) * cellSize, cellSize, cellSize);
       }
     }
   }
@@ -163,7 +168,17 @@ InfoField::InfoField(GameParams_t *gameParams) {
 
 void InfoField::paintEvent(QPaintEvent *e) {
   Q_UNUSED(e)
+  QBrush gameFieldBrush(QColor(139, 144, 163), Qt::SolidPattern);
+  QBrush infoBrush(QColor(200, 200, 200), Qt::SolidPattern);
+  QBrush color1CyanBrush(QColor(0, 255, 255), Qt::SolidPattern);
+  QBrush color2BlueBrush(QColor(255, 100, 255), Qt::SolidPattern);
+  QBrush color3OrangeBrush(QColor(255, 165, 0), Qt::SolidPattern);
+  QBrush color4YellowBrush(QColor(255, 255, 0), Qt::SolidPattern);
+  QBrush color5GreenBrush(QColor(0, 128, 0), Qt::SolidPattern);
+  QBrush color6MagentaBrush(QColor(255, 0, 255), Qt::SolidPattern);
+  QBrush color7RedBrush(QColor(255, 0, 0), Qt::SolidPattern);
   QPainter painter;
+
   painter.begin(this);
   painter.drawRect(0, 0, width() - 1, height() - 1);
   painter.drawRect(0, 250, width() - 1, height() - 1);
@@ -178,32 +193,69 @@ void InfoField::paintEvent(QPaintEvent *e) {
                    "LEVEL: " + QString::number(params->data->level));
   painter.drawText(QRect(10, 130, width() - 10, 20), Qt::AlignLeft,
                    "SPEED: " + QString::number(params->data->speed));
+  if (params->messages.secondaryField) {
+    painter.drawText(QRect(10, 170, width() - 10, 20), Qt::AlignLeft,
+                     params->messages.secondaryField);
+    for (size_t row = 0; row < FIGURE_HEIGHT; ++row) {
+      for (size_t col = 0; col < FIGURE_WIDTH; ++col) {
+        switch (params->data->next[row][col]) {
+          case 1:
+            painter.setBrush(color1CyanBrush);
+            break;
+          case 2:
+            painter.setBrush(color2BlueBrush);
+            break;
+          case 3:
+            painter.setBrush(color3OrangeBrush);
+            break;
+          case 4:
+            painter.setBrush(color4YellowBrush);
+            break;
+          case 5:
+            painter.setBrush(color5GreenBrush);
+            break;
+          case 6:
+            painter.setBrush(color6MagentaBrush);
+            break;
+          case 7:
+            painter.setBrush(color7RedBrush);
+            break;
+          default:
+            painter.setBrush(gameFieldBrush);
+            break;
+        }
+        painter.drawRect(60 + col * GameField::cellSize,
+                         200 + row * GameField::cellSize, GameField::cellSize,
+                         GameField::cellSize);
+      }
+    }
+  }
 
-  int hintsCoordY = 260;
-  painter.drawText(QRect(10, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+  int hintsCoordY = 252;
+  painter.drawText(QRect(17, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                    "SPACE - Pause game");
-  hintsCoordY += 30;
+  hintsCoordY += 25;
   if (params->messages.showLeftKey) {
-    painter.drawText(QRect(7, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+    painter.drawText(QRect(44, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                      QString::fromWCharArray(params->messages.leftKey));
-    hintsCoordY += 30;
+    hintsCoordY += 25;
   }
   if (params->messages.showRightKey) {
-    painter.drawText(QRect(13, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+    painter.drawText(QRect(44, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                      QString::fromWCharArray(params->messages.rightKey));
-    hintsCoordY += 30;
+    hintsCoordY += 25;
   }
   if (params->messages.showDownKey) {
-    painter.drawText(QRect(10, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+    painter.drawText(QRect(44, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                      QString::fromWCharArray(params->messages.downKey));
-    hintsCoordY += 30;
+    hintsCoordY += 25;
   }
   if (params->messages.showActionKey) {
-    painter.drawText(QRect(10, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+    painter.drawText(QRect(46, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                      QString::fromWCharArray(params->messages.actionKey));
-    hintsCoordY += 30;
+    hintsCoordY += 25;
   }
-  painter.drawText(QRect(9, hintsCoordY, width() - 10, 20), Qt::AlignCenter,
+  painter.drawText(QRect(31, hintsCoordY, width() - 10, 20), Qt::AlignLeft,
                    "ESC  - Exit game");
 
   painter.end();

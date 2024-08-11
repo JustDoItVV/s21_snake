@@ -39,6 +39,7 @@ class GameField : public QWidget {
   GameParams_t *params;
   GameInfo_t *data;
   UserAction_t action;
+  static const int cellSize = 20;
 
  protected:
   void paintEvent(QPaintEvent *event) override;
@@ -47,7 +48,6 @@ class GameField : public QWidget {
  private:
   static const int startSpeed = 550;
   static const int speedDecrement = 50;
-  static const int snakeItemSize = 20;
   QTimer *gameTickTimer;
   int fieldSizeX;
   int fieldSizeY;

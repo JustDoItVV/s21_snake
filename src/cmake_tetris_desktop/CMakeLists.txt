@@ -15,13 +15,13 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
-        brick_game/tetris/tetris.c
-        brick_game/tetris/tetris.h
-        controller/controller.cpp
-        controller/controller.h
-        gui/desktop/mainwindow.cpp
-        gui/desktop/mainwindow.h
-        main_qt.cpp
+        ../brick_game/tetris/tetris.cpp
+        ../brick_game/tetris/tetris.h
+        ../controller/controller.cpp
+        ../controller/controller.h
+        ../gui/desktop/mainwindow.cpp
+        ../gui/desktop/mainwindow.h
+        ../main_qt.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

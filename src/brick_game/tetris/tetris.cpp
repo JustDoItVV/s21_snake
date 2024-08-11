@@ -77,7 +77,7 @@ void initializeTetrisParams(GameParams_t *params) {
   params->isActive = true;
 
   params->messages.showSecondaryField = true;
-  params->messages.secondaryField = "NEXT";
+  params->messages.secondaryField = "NEXT:";
   params->messages.showLeftKey = true;
   params->messages.leftKey = L"←   - Move left";
   params->messages.showRightKey = true;
