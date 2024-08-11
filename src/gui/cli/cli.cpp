@@ -35,9 +35,7 @@ void destroyGui(void) {
 void gameLoop(void) {
   GameParams_t params;
   GameInfo_t data;
-  Figure_t figure;
   params.data = &data;
-  params.figure = &figure;
   UserAction_t action;
   int pressedKey;
   double counter = 0.;
@@ -57,13 +55,13 @@ void gameLoop(void) {
     counter = counter + READ_DELAY * 1E-3;
 
     if (params.state == START)
-      drawStartScreen(params.data);
+      drawStartScreen(&params);
     else if (params.state == GAME) {
       drawGui();
-      drawInfo(params.data);
+      drawInfo(&params);
       drawField(params.data->field);
     } else if (params.state == GAMEOVER)
-      drawGameoverScreen(params.data);
+      drawGameoverScreen(&params);
 
     if (params.data->pause)
       mvprintw(1 + FIELD_SIZE_Y / 2, FIELD_SIZE_X - 1, "PAUSE");
@@ -120,55 +118,77 @@ void drawGui(void) {
 }
 
 void drawField(int **field) {
-  for (int row = 0; row < FIELD_SIZE_Y; row++)
-    for (int col = 0; col < FIELD_SIZE_X; col++)
-      if (field[row + 3][col + 3]) {
-        attron(COLOR_PAIR(field[row + 3][col + 3]));
-        mvaddch(1 + row, 1 + col * 2, ACS_CKBOARD);
-        mvaddch(1 + row, 1 + col * 2 + 1, ACS_CKBOARD);
-        attroff(COLOR_PAIR(field[row + 3][col + 3]));
+  for (int row = BORDER_SIZE; row < FIELD_SIZE_Y + BORDER_SIZE; row++)
+    for (int col = BORDER_SIZE; col < FIELD_SIZE_X + BORDER_SIZE; col++)
+      if (field[row][col]) {
+        attron(COLOR_PAIR(field[row][col]));
+        mvaddch(1 + (row - BORDER_SIZE), 1 + (col - BORDER_SIZE) * 2,
+                ACS_CKBOARD);
+        mvaddch(1 + (row - BORDER_SIZE), 1 + (col - BORDER_SIZE) * 2 + 1,
+                ACS_CKBOARD);
+        attroff(COLOR_PAIR(field[row][col]));
       }
   move(FIELD_SIZE_Y + 1, FIELD_SIZE_X * 2 + INFO_SIZE_X * 2 + 3);
 }
 
-void drawInfo(GameInfo_t *data) {
-  mvprintw(2, FIELD_SIZE_X * 2 + 3, "HIGH SCORE: %d", data->high_score);
-  mvprintw(4, FIELD_SIZE_X * 2 + 3, "SCORE: %d", data->score);
-  mvprintw(6, FIELD_SIZE_X * 2 + 3, "LEVEL: %d", data->level);
-  mvprintw(8, FIELD_SIZE_X * 2 + 3, "SPEED: %d", data->speed);
-  mvprintw(10, FIELD_SIZE_X * 2 + 3, "NEXT");
-  for (int row = 0; row < FIGURE_HEIGHT; row++)
-    for (int col = 0; col < FIGURE_WIDTH; col++) {
-      if (data->next[row][col]) {
-        attron(COLOR_PAIR(data->next[row][col]));
-        mvaddch(11 + row, FIELD_SIZE_X * 2 + 6 * 2 + col * 2, ACS_CKBOARD);
-        mvaddch(11 + row, FIELD_SIZE_X * 2 + 6 * 2 + col * 2 + 1, ACS_CKBOARD);
-        attroff(COLOR_PAIR(data->next[row][col]));
-      }
+void drawInfo(GameParams_t *params) {
+  mvprintw(2, FIELD_SIZE_X * 2 + 3, "HIGH SCORE: %d", params->data->high_score);
+  mvprintw(4, FIELD_SIZE_X * 2 + 3, "SCORE: %d", params->data->score);
+  mvprintw(6, FIELD_SIZE_X * 2 + 3, "LEVEL: %d", params->data->level);
+  mvprintw(8, FIELD_SIZE_X * 2 + 3, "SPEED: %d", params->data->speed);
+
+  if (params->data->next) {
+    if (params->messages.showSecondaryField) {
+      mvprintw(10, FIELD_SIZE_X * 2 + 3, params->messages.secondaryField);
     }
+    for (int row = 0; row < FIGURE_HEIGHT; row++)
+      for (int col = 0; col < FIGURE_WIDTH; col++) {
+        if (params->data->next[row][col]) {
+          attron(COLOR_PAIR(params->data->next[row][col]));
+          mvaddch(11 + row, FIELD_SIZE_X * 2 + 6 * 2 + col * 2, ACS_CKBOARD);
+          mvaddch(11 + row, FIELD_SIZE_X * 2 + 6 * 2 + col * 2 + 1,
+                  ACS_CKBOARD);
+          attroff(COLOR_PAIR(params->data->next[row][col]));
+        }
+      }
+  }
 
-  mvprintw(15, FIELD_SIZE_X * 2 + 3, "SPACE - Pause game");
-  mvaddwstr(16, FIELD_SIZE_X * 2 + 5, L"←   - Move left");
-  mvaddwstr(17, FIELD_SIZE_X * 2 + 5, L"→   - Move right");
-  mvaddwstr(18, FIELD_SIZE_X * 2 + 5, L"↓   - Move down");
-  mvaddwstr(19, FIELD_SIZE_X * 2 + 5, L"R   - Rotate");
-  mvaddwstr(20, FIELD_SIZE_X * 2 + 4, L"ESC  - Exit game");
+  int hintsCoordY = 15;
+  mvprintw(hintsCoordY, FIELD_SIZE_X * 2 + 3, "SPACE - Pause game");
+  hintsCoordY++;
+  if (params->messages.showLeftKey) {
+    mvaddwstr(hintsCoordY, FIELD_SIZE_X * 2 + 5, params->messages.leftKey);
+    hintsCoordY++;
+  }
+  if (params->messages.showRightKey) {
+    mvaddwstr(hintsCoordY, FIELD_SIZE_X * 2 + 5, params->messages.rightKey);
+    hintsCoordY++;
+  }
+  if (params->messages.showDownKey) {
+    mvaddwstr(hintsCoordY, FIELD_SIZE_X * 2 + 5, params->messages.downKey);
+    hintsCoordY++;
+  }
+  if (params->messages.showActionKey) {
+    mvaddwstr(hintsCoordY, FIELD_SIZE_X * 2 + 5, params->messages.actionKey);
+    hintsCoordY++;
+  }
+  mvaddwstr(hintsCoordY, FIELD_SIZE_X * 2 + 4, L"ESC  - Exit game");
   move(FIELD_SIZE_Y + 1, FIELD_SIZE_X * 2 + INFO_SIZE_X * 2 + 3);
 }
 
-void drawStartScreen(GameInfo_t *data) {
+void drawStartScreen(GameParams_t *params) {
   drawGui();
-  drawInfo(data);
+  drawInfo(params);
 
   mvprintw(1 + FIELD_SIZE_Y / 2, 1, "Press ENTER to start");
 
   move(FIELD_SIZE_Y + 1, FIELD_SIZE_X * 2 + INFO_SIZE_X * 2 + 3);
 }
 
-void drawGameoverScreen(GameInfo_t *data) {
+void drawGameoverScreen(GameParams_t *params) {
   drawGui();
-  drawInfo(data);
-  drawField(data->field);
+  drawInfo(params);
+  drawField(params->data->field);
 
   mvprintw(FIELD_SIZE_Y / 2, 7, "GAMEOVER");
   mvprintw(FIELD_SIZE_Y / 2 + 1, 5, "Press  ENTER");

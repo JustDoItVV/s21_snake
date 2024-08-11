@@ -1,6 +1,10 @@
 #ifndef TETRIS_H
 #define TETRIS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************
  * @file tetris.h
  * @brief Game logic library header
@@ -11,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <wchar.h>
 
 #define PI_2 1.57079632679489661923
 
@@ -25,7 +30,7 @@
 #define SIGNALS_COUNT 8
 #define FIGURES_COUNT 7
 
-#define DATAFILE_PATH "./data"
+#define DATAFILE_PATH "./data_tetris"
 
 #define LEVEL_MIN 1
 #define LEVEL_MAX 10
@@ -112,6 +117,19 @@ typedef struct {
   int y;
 } Figure_t;
 
+typedef struct {
+  bool showSecondaryField;
+  const char *secondaryField;
+  bool showLeftKey;
+  const wchar_t *leftKey;
+  bool showRightKey;
+  const wchar_t *rightKey;
+  bool showDownKey;
+  const wchar_t *downKey;
+  bool showActionKey;
+  const wchar_t *actionKey;
+} UI_messages_t;
+
 /************************************************************
  * @brief Game parameters struct
  *
@@ -127,6 +145,8 @@ typedef struct {
   GameState_t state;
   bool isActive;
   Figure_t *figure;
+  UI_messages_t messages;
+  int **gameField;
 } GameParams_t;
 
 /************************************************************
@@ -157,7 +177,7 @@ typedef void (*funcPointer)(GameParams_t *params);
  * @param params Pointer to GameParams_t struct
  * @return GameParams_t
  ************************************************************/
-GameParams_t *updateParams(GameParams_t *params);
+GameParams_t *updateTetrisParams(GameParams_t *params);
 
 /************************************************************
  * @brief Initialize game parameters
@@ -167,7 +187,7 @@ GameParams_t *updateParams(GameParams_t *params);
  *
  * @param params Pointer to GameParams_t struct
  ************************************************************/
-void initializeParams(GameParams_t *params);
+void initializeTetrisParams(GameParams_t *params);
 
 /************************************************************
  * @brief Remove game parameters
@@ -315,5 +335,9 @@ void clearFigure(GameParams_t *params);
  * @param params Pointer to GameParams_t struct
  ************************************************************/
 int **allocate2DArray(int nRows, int nCols);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#include "../../brick_game/tetris/tetris.h"
+#include "../../controller/controller.h"
 
 #define FRAME_RATE 60  // fps
 #define READ_DELAY 50  // milliseconds
@@ -73,20 +73,20 @@ void drawField(int **field);
  *
  * Draw info block with game data, next figure colored preview.
  ************************************************************/
-void drawInfo(GameInfo_t *data);
+void drawInfo(GameParams_t *params);
 
 /************************************************************
  * @brief Draw start screen
  *
  * Draw static start screen.
  ************************************************************/
-void drawStartScreen(GameInfo_t *data);
+void drawStartScreen(GameParams_t *params);
 
 /************************************************************
  * @brief Draw gameover screen
  *
  * Draw static gameover screen.
  ************************************************************/
-void drawGameoverScreen(GameInfo_t *data);
+void drawGameoverScreen(GameParams_t *params);
 
 #endif

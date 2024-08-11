@@ -129,3 +129,8 @@ Module.symvers
 Mkfile.old
 Makefile.old
 dkms.conf
+
+.vscode/
+src/build-snake-Desktop-Debug/
+data_tetris
+data_snake

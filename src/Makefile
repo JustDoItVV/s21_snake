@@ -1,5 +1,5 @@
-CC := gcc
-CFLAGS := -Wall -Wextra -Werror -std=c11 -Wpedantic
+CC := g++
+CFLAGS := -Wall -Wextra -Werror -std=c++17 -Wpedantic
 GCOV_FLAGS := -fprofile-arcs -ftest-coverage
 
 OS := $(shell uname -s)
@@ -10,8 +10,8 @@ else
 	LIB_FLAGS := $(shell pkg-config --static --cflags --libs check ncursesw)
 endif
 
-PROJECT := tetris_cli
-GUI := gui/cli/cli.c
+PROJECT := main_cli
+GUI_CLI := gui/cli/cli.cpp
 BUILD_DIR := build
 DOCS_DIR := docs
 TESTS_DIR := tests
@@ -20,10 +20,12 @@ DIST_DIR := dist
 
 all : install
 
-
-install : tetris.a | build_dir
-	doxygen
-	$(CC) $(CFLAGS) $(PROJECT).c $(GUI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/$(PROJECT) $(LIB_FLAGS)
+install : tetris.a snake.a | build_dir
+	# doxygen
+	$(CC) $(CFLAGS) $(PROJECT).cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/tetris_cli $(LIB_FLAGS) -DTETRIS=1
+	$(CC) $(CFLAGS) $(PROJECT).cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/snake_cli $(LIB_FLAGS) -DSNAKE=1
+	rm -rf $(BUILD_DIR)/tetris.a
+	rm -rf $(BUILD_DIR)/snake.a
 
 install-sanitized : tetris.a
 	$(CC) $(CFLAGS) $(PROJECT).c $(GUI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/$(PROJECT) $(LIB_FLAGS) -fsanitize=address
@@ -33,6 +35,12 @@ tetris.a : build_dir
 	ar rc $(BUILD_DIR)/tetris.a $(BUILD_DIR)/tetris.o
 	ranlib $(BUILD_DIR)/tetris.a
 	rm -rf $(BUILD_DIR)/tetris.o
+
+snake.a : build_dir
+	$(CC) $(CFLAGS) -c brick_game/snake/snake.cpp -o $(BUILD_DIR)/snake.o
+	ar rc $(BUILD_DIR)/snake.a $(BUILD_DIR)/snake.o
+	ranlib $(BUILD_DIR)/snake.a
+	rm -rf $(BUILD_DIR)/snake.o
 
 uninstall :
 	rm -rf $(DOCS_DIR) $(BUILD_DIR)

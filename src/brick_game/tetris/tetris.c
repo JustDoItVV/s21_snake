@@ -31,25 +31,27 @@ int figures[FIGURES_COUNT][8] = {
 
 void userInput(UserAction_t action, bool hold) {
   if (hold) printf(" ");
-  GameParams_t *params = updateParams(NULL);
+  GameParams_t *params = updateTetrisParams(NULL);
   GameState_t state = params->state;
   funcPointer func = fsmTable[state][action];
   if (func) func(params);
 }
 
 GameInfo_t updateCurrentState(void) {
-  GameParams_t *params = updateParams(NULL);
+  GameParams_t *params = updateTetrisParams(NULL);
   shift(params);
   return *params->data;
 }
 
-GameParams_t *updateParams(GameParams_t *params) {
+GameParams_t *updateTetrisParams(GameParams_t *params) {
   static GameParams_t *data;
   if (params != NULL) data = params;
   return data;
 }
 
-void initializeParams(GameParams_t *params) {
+void initializeTetrisParams(GameParams_t *params) {
+  static Figure_t figure;
+  params->figure = &figure;
   params->data->field = allocate2DArray(FIELD_HEIGHT, FIELD_WIDTH);
   resetField(params);
   params->data->next = allocate2DArray(FIGURE_HEIGHT, FIGURE_WIDTH);
@@ -73,6 +75,17 @@ void initializeParams(GameParams_t *params) {
   params->figure->typeNext = generateRandomFigure(params->data->next);
   params->state = START;
   params->isActive = true;
+
+  params->messages.showSecondaryField = true;
+  params->messages.secondaryField = "NEXT";
+  params->messages.showLeftKey = true;
+  params->messages.leftKey = L"←   - Move left";
+  params->messages.showRightKey = true;
+  params->messages.rightKey = L"→   - Move right";
+  params->messages.showDownKey = true;
+  params->messages.downKey = L"↓   - Move down";
+  params->messages.showActionKey = true;
+  params->messages.actionKey = L"R   - Rotate";
 }
 
 void resetField(GameParams_t *params) {
