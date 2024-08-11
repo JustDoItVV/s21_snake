@@ -10,8 +10,9 @@ else
 	LIB_FLAGS := $(shell pkg-config --static --cflags --libs check ncursesw)
 endif
 
-PROJECT := main_cli
+PROJECT := main
 GUI_CLI := gui/cli/cli.cpp
+GUI_QT := gui/desktop/mainwindow.cpp
 BUILD_DIR := build
 DOCS_DIR := docs
 TESTS_DIR := tests
@@ -22,13 +23,13 @@ all : install
 
 install : tetris.a snake.a | build_dir
 	# doxygen
-	$(CC) $(CFLAGS) $(PROJECT).cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/tetris_cli $(LIB_FLAGS) -DTETRIS=1
-	$(CC) $(CFLAGS) $(PROJECT).cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/snake_cli $(LIB_FLAGS) -DSNAKE=1
+	$(CC) $(CFLAGS) $(PROJECT)_cli.cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/tetris_cli $(LIB_FLAGS) -DTETRIS=1
+	$(CC) $(CFLAGS) $(PROJECT)_cli.cpp controller/controller.cpp $(GUI_CLI) $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/snake_cli $(LIB_FLAGS) -DSNAKE=1
+	mkdir tmp && cd tmp && cmake ../cmake_snake_desktop && make && cp snake_desktop ../build/snake_desktop
+	cd ..
+	rm -rf tmp
 	rm -rf $(BUILD_DIR)/tetris.a
 	rm -rf $(BUILD_DIR)/snake.a
-
-install-sanitized : tetris.a
-	$(CC) $(CFLAGS) $(PROJECT).c $(GUI) $(BUILD_DIR)/tetris.a -o $(BUILD_DIR)/$(PROJECT) $(LIB_FLAGS) -fsanitize=address
 
 tetris.a : build_dir
 	$(CC) $(CFLAGS) -c brick_game/tetris/tetris.c -o $(BUILD_DIR)/tetris.o
@@ -49,7 +50,7 @@ rebuild : uninstall install
 
 
 clean :
-	rm -rf $(DOCS_DIR) $(BUILD_DIR) $(DIST_DIR) $(REPORT_DIR) $(TESTS_DIR)/tetris_test
+	rm -rf $(DOCS_DIR) $(BUILD_DIR) $(DIST_DIR) $(REPORT_DIR) $(TESTS_DIR)/tetris_test tmp
 
 dvi :
 	cd docs/latex && make all

@@ -6,7 +6,7 @@ void initializeParams(GameParams_t *params) {
 #elif defined(SNAKE)
   initializeSnakeParams(params);
 #else
-  initializeTetrisParams(params);
+  initializeSnakeParams(params);
 #endif
 }
 
@@ -16,6 +16,6 @@ void updateParams(GameParams_t *params) {
 #elif defined(SNAKE)
   updateSnakeParams(params);
 #else
-  updateTetrisParams(params);
+  updateSnakeParams(params);
 #endif
 }

@@ -2,48 +2,6 @@
 
 using namespace s21;
 
-/************************************************************
- * @brief Finite state machine table
- *
- * Finite state machine table
- ************************************************************/
-// std::map<GameState_t, std::map<UserAction_t, GameField>> GameField::fsmTable
-// = {
-//     {GameState_t::START,
-//      {
-//          {UserAction_t::Start, &GameField::startGame},
-//          {UserAction_t::Pause, nullptr},
-//          {UserAction_t::Terminate, &GameField::removeParams},
-//          {UserAction_t::Left, nullptr},
-//          {UserAction_t::Right, nullptr},
-//          {UserAction_t::Up, nullptr},
-//          {UserAction_t::Down, nullptr},
-//          {UserAction_t::Action, nullptr},
-//      }},
-//     {GameState_t::GAME,
-//      {
-//          {UserAction_t::Start, nullptr},
-//          {UserAction_t::Pause, &GameField::pauseGame},
-//          {UserAction_t::Terminate, &GameField::removeParams},
-//          {UserAction_t::Left, &GameField::turnLeft},
-//          {UserAction_t::Right, &GameField::turnRight},
-//          {UserAction_t::Up, nullptr},
-//          {UserAction_t::Down, nullptr},
-//          {UserAction_t::Action, nullptr},
-//      }},
-//     {GameState_t::GAMEOVER,
-//      {
-//          {UserAction_t::Start, &GameField::startGame},
-//          {UserAction_t::Pause, nullptr},
-//          {UserAction_t::Terminate, &GameField::removeParams},
-//          {UserAction_t::Left, nullptr},
-//          {UserAction_t::Right, nullptr},
-//          {UserAction_t::Up, nullptr},
-//          {UserAction_t::Down, nullptr},
-//          {UserAction_t::Action, nullptr},
-//      }},
-// };
-
 void userInput(UserAction_t action, bool hold) {
   if (hold) std::cout << " ";
   GameParams_t *params = updateSnakeParams(NULL);
@@ -202,6 +160,11 @@ void GameSnake::startGame() {
   data->state = GameState_t::GAME;
   data->data->pause = false;
   data->data->score = 0;
+  FILE *fp = fopen(DATAFILE_PATH, "r");
+  int highScore;
+  fscanf(fp, "%d\n", &highScore);
+  data->data->high_score = highScore;
+  fclose(fp);
   data->data->level = LEVEL_MIN;
   data->data->speed = SPEED_MIN;
   snake->reset();
@@ -253,6 +216,12 @@ void GameSnake::moveForward() {
   if (newSnakeItem->x == food->x && newSnakeItem->y == food->y) {
     spawnFood();
     data->data->score++;
+    if (data->data->score > data->data->high_score) {
+      data->data->high_score = data->data->score;
+      FILE *fp = fopen(DATAFILE_PATH, "w");
+      fprintf(fp, "%d\n", data->data->high_score);
+      fclose(fp);
+    }
 
     if (data->data->speed < SPEED_MAX) {
       data->data->speed++;

@@ -6,7 +6,7 @@
 #elif defined(SNAKE)
 #include "../brick_game/snake/snake.h"
 #else
-#include "../brick_game/tetris/tetris.h"
+#include "../brick_game/snake/snake.h"
 #endif
 
 void initializeParams(GameParams_t *params);

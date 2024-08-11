@@ -1,42 +1,78 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "game.h"
-#include "infofield.h"
-#include "types.h"
-
-#include <QMainWindow>
 #include <QGridLayout>
-#include <QStateMachine>
+#include <QKeyEvent>
 #include <QLabel>
-#include <QStackedWidget>
-#include <QComboBox>
-#include <QPushButton>
+#include <QList>
+#include <QMainWindow>
+#include <QPainter>
+#include <QRandomGenerator>
+#include <QTimer>
+#include <QWidget>
+
+#include "../../controller/controller.h"
 
 namespace s21 {
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
 
-public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+class GameField;
+class InfoField;
 
-private:
-    QPushButton *buttonBrick;
-    QPushButton *buttonSnake;
-    GameField *m_gameField;
-    InfoField *m_infoField;
-    QWidget *m_centralWidget;
-    QGridLayout *m_gridLayout;
+class MainWindow : public QMainWindow {
+  Q_OBJECT
 
-    void drawMainMenu();
-    void drawGame(Game game);
+ public:
+  MainWindow(QWidget *parent = nullptr);
+  ~MainWindow();
 
-private slots:
-    void handleBrickButton();
-    void handleSnakeButton();
+ private:
+  GameField *gameField;
+  InfoField *infoField;
+  QWidget *centralWidget;
+  QGridLayout *gridLayout;
 };
-} // namespace s21
 
-#endif // MAINWINDOW_H
+class GameField : public QWidget {
+  Q_OBJECT
+ public:
+  GameField();
+  GameParams_t *params;
+  GameInfo_t *data;
+  UserAction_t action;
+
+ protected:
+  void paintEvent(QPaintEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+
+ private:
+  static const int startSpeed = 550;
+  static const int speedDecrement = 50;
+  static const int snakeItemSize = 20;
+  QTimer *gameTickTimer;
+  int fieldSizeX;
+  int fieldSizeY;
+
+ private slots:
+  void tickGame();
+
+ signals:
+  void updateInfoText(GameParams_t *params);
+};
+
+class InfoField : public QWidget {
+  Q_OBJECT
+ public:
+  InfoField(GameParams_t *gameParams);
+
+ protected:
+  void paintEvent(QPaintEvent *e) override;
+
+ private:
+  GameParams_t *params;
+
+ public slots:
+  void updateInfoTextSlot(GameParams_t *params);
+};
+}  // namespace s21
+
+#endif  // MAINWINDOW_H
