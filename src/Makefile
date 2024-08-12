@@ -5,9 +5,9 @@ GCOV_FLAGS := -fprofile-arcs -ftest-coverage
 OS := $(shell uname -s)
 
 ifeq ($(OS), Darwin)
-	LIB_FLAGS := $(shell pkg-config --static --cflags --libs check ncurses)
+	LIB_FLAGS := $(shell pkg-config --static --cflags --libs gtest ncurses)
 else
-	LIB_FLAGS := $(shell pkg-config --static --cflags --libs check ncursesw)
+	LIB_FLAGS := $(shell pkg-config --static --cflags --libs gtest ncursesw)
 endif
 
 PROJECT := main
@@ -15,7 +15,6 @@ GUI_CLI := gui/cli/cli.cpp
 GUI_QT := gui/desktop/mainwindow.cpp
 BUILD_DIR := build
 DOCS_DIR := docs
-TESTS_DIR := tests
 REPORT_DIR := report
 DIST_DIR := dist
 
@@ -52,7 +51,7 @@ rebuild : uninstall install
 
 
 clean :
-	rm -rf $(DOCS_DIR) $(BUILD_DIR) $(DIST_DIR) $(REPORT_DIR) $(TESTS_DIR)/tetris_test tmp
+	rm -rf $(DOCS_DIR) $(BUILD_DIR) $(DIST_DIR) $(REPORT_DIR) tmp
 
 dvi :
 	cd docs/latex && make all
@@ -60,20 +59,26 @@ dvi :
 dist : dist_dir
 	tar cf $(DIST_DIR)/tetris-1.0.tar $(BUILD_DIR) $(DOCS_DIR)
 
-test :
-	$(CC) $(CFLAGS) $(TESTS_DIR)/tetris_cli_test.c brick_game/tetris/tetris_test.c $(BUILD_DIR)/tetris.a -o $(TESTS_DIR)/tetris_test $(LIB_FLAGS)
-	./$(TESTS_DIR)/tetris_test
+test : tetris.a snake.a
+	$(CC) $(CFLAGS) main_tests.cpp brick_game/tetris/tetris_test.cpp brick_game/snake/snake_test.cpp $(BUILD_DIR)/tetris.a $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/tests $(LIB_FLAGS) 
+	rm -rf $(BUILD_DIR)/tetris.a
+	rm -rf $(BUILD_DIR)/snake.a
+	./$(BUILD_DIR)/tests
 
 leaks :
 	leaks -atExit -- ./$(TESTS_DIR)/tetris_cli
 
 gcov_report :
-	$(CC) $(CFLAGS) $(GCOV_FLAGS) -c brick_game/tetris/tetris.c -o $(BUILD_DIR)/tetris.o $(LIB_FLAGS)
+	$(CC) $(CFLAGS) $(GCOV_FLAGS) -c brick_game/tetris/tetris.cpp -o $(BUILD_DIR)/tetris.o $(LIB_FLAGS)
 	ar rc $(BUILD_DIR)/tetris.a $(BUILD_DIR)/tetris.o
 	ranlib $(BUILD_DIR)/tetris.a
 	rm -rf $(BUILD_DIR)/tetris.o
-	$(CC) $(CFLAGS) $(TESTS_DIR)/tetris_cli_test.c brick_game/tetris/tetris_test.c $(BUILD_DIR)/tetris.a -o $(TESTS_DIR)/tetris_test $(LIB_FLAGS) -lgcov
-	./$(TESTS_DIR)/tetris_test
+	$(CC) $(CFLAGS) $(GCOV_FLAGS) -c brick_game/snake/snake.cpp -o $(BUILD_DIR)/snake.o $(LIB_FLAGS)
+	ar rc $(BUILD_DIR)/snake.a $(BUILD_DIR)/snake.o
+	ranlib $(BUILD_DIR)/snake.a
+	rm -rf $(BUILD_DIR)/snake.o
+	$(CC) $(CFLAGS) main_tests.cpp brick_game/tetris/tetris_test.cpp brick_game/snake/snake_test.cpp $(BUILD_DIR)/tetris.a $(BUILD_DIR)/snake.a -o $(BUILD_DIR)/tests $(LIB_FLAGS) -lgcov
+	./$(BUILD_DIR)/tests
 	rm -rf $(REPORT_DIR)
 	mkdir $(REPORT_DIR)
 	gcovr --html-details $(REPORT_DIR)/coverage.html
@@ -87,7 +92,7 @@ check :
 	clang-format --style=file:"../materials/linters/.clang-format" -n *.cpp */*.c */*.cpp */*/*.c */*/*.cpp */*.h */*/*.h
 
 valgrind-test :
-	CK_FORK=no valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s --track-origins=yes $(TESTS_DIR)/tetris_test
+	CK_FORK=no valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s --track-origins=yes $(BUILD_DIR)/tests
 
 build_dir :
 	mkdir -p $(BUILD_DIR)

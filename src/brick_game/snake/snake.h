@@ -106,6 +106,8 @@ class GameSnake {
 
   GameParams_t *data;
 
+  Snake *getSnake();
+  SnakeItem *getFood();
   void processUserInput(UserAction_t action);
   void startGame();
   void pauseGame();
@@ -118,8 +120,6 @@ class GameSnake {
   void resetField();
   void spawnFood();
   int **allocate2DArray(int nRows, int nCols);
-
-  static std::map<GameState_t, std::map<UserAction_t, GameSnake>> fsmTable;
 
  private:
   Snake *snake;
@@ -135,7 +135,6 @@ class SnakeItem {
  public:
   SnakeItem(int coordX, int coordY);
 
- private:
   int x;
   int y;
   int color;
@@ -146,12 +145,14 @@ class Snake {
 
  public:
   Snake();
+  ~Snake();
+
+  enum SnakeDirection { up, left, down, right };
+  SnakeDirection snakeDirection;
+  std::vector<SnakeItem *> snakeBody;
 
  private:
   static const int snakeBeginSize = 4;
-  std::vector<SnakeItem *> snakeBody;
-  enum SnakeDirection { up, left, down, right };
-  SnakeDirection snakeDirection;
 
   void reset();
 };

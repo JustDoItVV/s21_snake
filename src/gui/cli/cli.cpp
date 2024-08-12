@@ -72,6 +72,10 @@ void gameLoop(void) {
       userInput(action, hold);
     }
   }
+
+#ifdef SNAKE
+  delete params.game;
+#endif
 }
 
 UserAction_t getAction(int pressedKey) {

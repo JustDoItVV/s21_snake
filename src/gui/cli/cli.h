@@ -9,6 +9,7 @@
 
 #include <locale.h>
 #include <ncurses.h>
+#include <string.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -21,7 +22,7 @@
 #define INFO_SIZE_X 10
 #define INFO_SIZE_Y 20
 #define GUI_SCALE 1
-#define SPEED_RATE 0.15
+#define SPEED_RATE 0.5
 
 /************************************************************
  * @brief GUI initialization

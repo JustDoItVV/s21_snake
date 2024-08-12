@@ -136,3 +136,4 @@ data_tetris
 data_snake
 build/
 tmp/
+report/

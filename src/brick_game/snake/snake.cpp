@@ -21,6 +21,50 @@ GameParams_t *updateSnakeParams(GameParams_t *params) {
   return data;
 }
 
+void initializeSnakeParams(GameParams_t *params) {
+  srand((unsigned)time(NULL));
+
+  params->gameName = "snake";
+  params->game = new GameSnake(params);
+  params->state = START;
+  params->isActive = true;
+
+  params->messages.showSecondaryField = false;
+  params->messages.showLeftKey = true;
+  params->messages.leftKey = L"←   - Turn left";
+  params->messages.showRightKey = true;
+  params->messages.rightKey = L"→   - Turn right";
+  params->messages.showDownKey = false;
+  params->messages.showActionKey = false;
+}
+
+GameSnake::GameSnake(GameParams_t *params) {
+  data = params;
+  data->data->field = allocate2DArray(FIELD_HEIGHT, FIELD_WIDTH);
+  data->data->next = allocate2DArray(FIGURE_HEIGHT, FIGURE_WIDTH);
+  resetField();
+  data->data->score = 0;
+
+  FILE *fp = fopen(DATAFILE_PATH, "r");
+  if (!fp) {
+    data->data->high_score = 0;
+    fp = fopen(DATAFILE_PATH, "w");
+    fprintf(fp, "0\n");
+  } else {
+    int highScore;
+    fscanf(fp, "%d\n", &highScore);
+    data->data->high_score = highScore;
+  }
+  fclose(fp);
+
+  data->data->level = LEVEL_MIN;
+  data->data->speed = SPEED_MIN;
+  data->data->pause = 0;
+
+  snake = new Snake();
+  food = new SnakeItem(fieldSizeX / 2, fieldSizeY / 2);
+}
+
 void GameSnake::processUserInput(UserAction_t action) {
   if (data->state == GameState_t::START) {
     if (action == UserAction_t::Start) {
@@ -86,50 +130,6 @@ void GameSnake::processUserInput(UserAction_t action) {
   }
 }
 
-void initializeSnakeParams(GameParams_t *params) {
-  srand((unsigned)time(NULL));
-
-  params->gameName = "snake";
-  params->game = new GameSnake(params);
-  params->state = START;
-  params->isActive = true;
-
-  params->messages.showSecondaryField = false;
-  params->messages.showLeftKey = true;
-  params->messages.leftKey = L"←   - Turn left";
-  params->messages.showRightKey = true;
-  params->messages.rightKey = L"→   - Turn right";
-  params->messages.showDownKey = false;
-  params->messages.showActionKey = false;
-}
-
-GameSnake::GameSnake(GameParams_t *params) {
-  data = params;
-  data->data->field = allocate2DArray(FIELD_HEIGHT, FIELD_WIDTH);
-  data->data->next = allocate2DArray(FIGURE_HEIGHT, FIGURE_WIDTH);
-  resetField();
-  data->data->score = 0;
-
-  FILE *fp = fopen(DATAFILE_PATH, "r");
-  if (!fp) {
-    data->data->high_score = 0;
-    fp = fopen(DATAFILE_PATH, "w");
-    fprintf(fp, "0\n");
-  } else {
-    int highScore;
-    fscanf(fp, "%d\n", &highScore);
-    data->data->high_score = highScore;
-  }
-  fclose(fp);
-
-  data->data->level = LEVEL_MIN;
-  data->data->speed = SPEED_MIN;
-  data->data->pause = 0;
-
-  snake = new Snake();
-  food = new SnakeItem(fieldSizeX / 2, fieldSizeY / 2);
-}
-
 void GameSnake::updateField() {
   resetField();
   data->data->field[food->y][food->x] = FOOD_COLOR;
@@ -181,7 +181,11 @@ SnakeItem::SnakeItem(int coordX, int coordY) {
 Snake::Snake() { reset(); }
 
 void Snake::reset() {
+  for (size_t i = 0; i < snakeBody.size(); ++i) {
+    delete snakeBody[i];
+  }
   snakeBody.clear();
+  snakeBody.shrink_to_fit();
 
   for (int i = 0; i < snakeBeginSize; ++i) {
     snakeBody.insert(snakeBody.begin(), new SnakeItem(i, 0));
@@ -209,6 +213,7 @@ void GameSnake::moveForward() {
          newSnakeItem->y == snake->snakeBody[i]->y) ||
         newSnakeItem->x < 0 || newSnakeItem->x > fieldSizeX - 1 ||
         newSnakeItem->y < 0 || newSnakeItem->y > fieldSizeY - 1) {
+      delete newSnakeItem;
       gameOver();
       return;
     }
@@ -229,12 +234,14 @@ void GameSnake::moveForward() {
     }
 
     if (data->data->score == WIN_CONDITION) {
+      delete newSnakeItem;
       gameOver();
       return;
     }
 
     spawnFood();
   } else {
+    delete snake->snakeBody.back();
     snake->snakeBody.pop_back();
   }
 
@@ -291,6 +298,32 @@ void GameSnake::removeParams() {
     data->data->field = NULL;
   }
 
+  if (data->data->next) {
+    for (size_t rowIdx = 0; rowIdx < FIGURE_HEIGHT; rowIdx++) {
+      delete[] data->data->next[rowIdx];
+      data->data->next[rowIdx] = NULL;
+    }
+    delete[] data->data->next;
+    data->data->next = NULL;
+  }
+
   data->state = GAMEOVER;
   data->isActive = false;
+}
+
+Snake *GameSnake::getSnake() { return snake; }
+
+SnakeItem *GameSnake::getFood() { return food; }
+
+GameSnake::~GameSnake() {
+  delete snake;
+  delete food;
+}
+
+Snake::~Snake() {
+  for (size_t i = 0; i < snakeBody.size(); ++i) {
+    delete snakeBody[i];
+  }
+  snakeBody.clear();
+  snakeBody.shrink_to_fit();
 }
