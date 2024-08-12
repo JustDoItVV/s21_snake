@@ -30,6 +30,7 @@ GameField::GameField() {
 
   fieldSizeX = width() / cellSize;
   fieldSizeY = height() / cellSize;
+  isActionBlocked = false;
 
   params = new GameParams_t();
   data = new GameInfo_t();
@@ -38,8 +39,11 @@ GameField::GameField() {
   initializeParams(params);
   updateParams(params);
 
+  repaintTimer = new QTimer();
   gameTickTimer = new QTimer();
+  connect(repaintTimer, &QTimer::timeout, this, &GameField::tickRepaint);
   connect(gameTickTimer, &QTimer::timeout, this, &GameField::tickGame);
+  repaintTimer->start(100);
   gameTickTimer->start(startSpeed - speedDecrement * params->data->speed);
 }
 
@@ -107,47 +111,76 @@ void GameField::paintEvent(QPaintEvent *event) {
                      Qt::AlignCenter, "Press ENTER to start");
   }
 
+  if (params->state == GameState_t::GAME && params->data->pause) {
+    painter.setBrush(infoBrush);
+    painter.setPen(QColor(50, 50, 50));
+    painter.drawRect(5, height() / 2 - 16, width() - 10, 32);
+    painter.setFont(QFont("Roboto", 13, 700));
+    painter.drawText(QRect(5, height() / 2 - 16, width() - 10, 32),
+                     Qt::AlignCenter, "PAUSE");
+  }
+
   if (params->state == GameState_t::GAMEOVER) {
     painter.setBrush(infoBrush);
     painter.setPen(QColor(50, 50, 50));
     painter.drawRect(5, height() / 2 - 32, width() - 10, 64);
     painter.setFont(QFont("Roboto", 13, 700));
+#ifdef WIN_CONDITION
     painter.drawText(QRect(5, height() / 2 - 32, width() - 10, 64),
-                     Qt::AlignCenter, "GAMEOVE\nPress ENTER\nto start again");
+                     Qt::AlignCenter,
+                     params->data->score == WIN_CONDITION
+                         ? "YOU WIN\nPress ENTER\nto start again"
+                         : "GAMEOVER\nPress ENTER\nto start again");
+#else
+    painter.drawText(QRect(5, height() / 2 - 32, width() - 10, 64),
+                     Qt::AlignCenter, "GAMEOVER\nPress ENTER\nto start again");
+#endif
   }
 
   painter.end();
 }
 
 void GameField::keyPressEvent(QKeyEvent *event) {
-  UserAction_t action = UserAction_t::Up;
+  if (!isActionBlocked) {
+    UserAction_t action = UserAction_t::Up;
 
-  if (event->key() == Qt::Key_Return) {
-    action = UserAction_t::Start;
-  }
-  if (event->key() == Qt::Key_Space) {
-    action = UserAction_t::Pause;
-  }
-  if (event->key() == Qt::Key_Escape) {
-    action = UserAction_t::Terminate;
-  }
-  if (event->key() == Qt::Key_Left) {
-    action = UserAction_t::Left;
-  }
-  if (event->key() == Qt::Key_Right) {
-    action = UserAction_t::Right;
-  }
-  if (event->key() == Qt::Key_Up) {
-    action = UserAction_t::Up;
-  }
-  if (event->key() == Qt::Key_Down) {
-    action = UserAction_t::Down;
-  }
-  if (event->key() == Qt::Key_R) {
-    action = UserAction_t::Action;
-  }
+    if (event->key() == Qt::Key_Return) {
+      action = UserAction_t::Start;
+    }
+    if (event->key() == Qt::Key_Space) {
+      action = UserAction_t::Pause;
+    }
+    if (event->key() == Qt::Key_Escape) {
+      action = UserAction_t::Terminate;
+    }
+    if (event->key() == Qt::Key_Left) {
+      action = UserAction_t::Left;
+    }
+    if (event->key() == Qt::Key_Right) {
+      action = UserAction_t::Right;
+    }
+    if (event->key() == Qt::Key_Up) {
+      action = UserAction_t::Up;
+    }
+    if (event->key() == Qt::Key_Down) {
+      action = UserAction_t::Down;
+    }
+    if (event->key() == Qt::Key_R) {
+      action = UserAction_t::Action;
+    }
 
-  userInput(action, false);
+    userInput(action, false);
+    if (strcmp(params->gameName, "snake") == 0) {
+      isActionBlocked = true;
+    }
+  }
+}
+
+void GameField::tickRepaint() {
+  if (!params->isActive) {
+    exit(0);
+  }
+  repaint();
 }
 
 void GameField::tickGame() {
@@ -157,8 +190,7 @@ void GameField::tickGame() {
     gameTickTimer->setInterval(startSpeed -
                                speedDecrement * params->data->speed);
   }
-
-  repaint();
+  isActionBlocked = false;
 }
 
 InfoField::InfoField(GameParams_t *gameParams) {

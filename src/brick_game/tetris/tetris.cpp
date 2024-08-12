@@ -51,6 +51,7 @@ GameParams_t *updateTetrisParams(GameParams_t *params) {
 
 void initializeTetrisParams(GameParams_t *params) {
   static Figure_t figure;
+  params->gameName = "tetris";
   params->figure = &figure;
   params->data->field = allocate2DArray(FIELD_HEIGHT, FIELD_WIDTH);
   resetField(params);

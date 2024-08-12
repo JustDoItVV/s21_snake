@@ -141,6 +141,7 @@ typedef struct {
  * @param figure Current figure data
  ************************************************************/
 typedef struct {
+  const char *gameName;
   GameInfo_t *data;
   GameState_t state;
   bool isActive;

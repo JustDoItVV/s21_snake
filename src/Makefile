@@ -81,10 +81,10 @@ gcov_report :
 	open $(REPORT_DIR)/coverage.html
 
 format :
-	clang-format --style=file:"../materials/linters/.clang-format" -i *.c $(TESTS_DIR)/*.c $(TESTS_DIR)/*.h */*/*.c */*/*.h
+	clang-format --style=file:"../materials/linters/.clang-format" -i *.cpp */*.c */*.cpp */*/*.c */*/*.cpp */*.h */*/*.h
 
 check :
-	clang-format --style=file:"../materials/linters/.clang-format" -n *.c */*.c */*.h */*/*.c */*/*.h
+	clang-format --style=file:"../materials/linters/.clang-format" -n *.cpp */*.c */*.cpp */*/*.c */*/*.cpp */*.h */*/*.h
 
 valgrind-test :
 	CK_FORK=no valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all -s --track-origins=yes $(TESTS_DIR)/tetris_test

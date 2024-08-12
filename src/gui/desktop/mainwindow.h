@@ -1,13 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <string.h>
+
 #include <QGridLayout>
 #include <QKeyEvent>
-#include <QLabel>
-#include <QList>
 #include <QMainWindow>
 #include <QPainter>
-#include <QRandomGenerator>
 #include <QTimer>
 #include <QWidget>
 
@@ -49,10 +48,13 @@ class GameField : public QWidget {
   static const int startSpeed = 550;
   static const int speedDecrement = 50;
   QTimer *gameTickTimer;
+  QTimer *repaintTimer;
   int fieldSizeX;
   int fieldSizeY;
+  bool isActionBlocked;
 
  private slots:
+  void tickRepaint();
   void tickGame();
 
  signals:

@@ -22,8 +22,9 @@
 
 #define LEVEL_MIN 1
 #define LEVEL_MAX 10
-#define SPEED_MIN 5
-#define SPEED_MAX 9
+#define SPEED_MIN 1
+#define SPEED_MAX 10
+#define WIN_CONDITION 200
 
 #define SNAKE_COLOR 5
 #define FOOD_COLOR 7
@@ -83,6 +84,7 @@ typedef struct {
 } UI_messages_t;
 
 typedef struct {
+  const char *gameName;
   GameInfo_t *data;
   GameState_t state;
   s21::GameSnake *game;

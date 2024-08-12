@@ -89,6 +89,7 @@ void GameSnake::processUserInput(UserAction_t action) {
 void initializeSnakeParams(GameParams_t *params) {
   srand((unsigned)time(NULL));
 
+  params->gameName = "snake";
   params->game = new GameSnake(params);
   params->state = START;
   params->isActive = true;
@@ -214,7 +215,6 @@ void GameSnake::moveForward() {
   }
 
   if (newSnakeItem->x == food->x && newSnakeItem->y == food->y) {
-    spawnFood();
     data->data->score++;
     if (data->data->score > data->data->high_score) {
       data->data->high_score = data->data->score;
@@ -223,10 +223,17 @@ void GameSnake::moveForward() {
       fclose(fp);
     }
 
-    if (data->data->speed < SPEED_MAX) {
+    if (data->data->score % 5 == 0 && data->data->speed < SPEED_MAX) {
       data->data->speed++;
       data->data->level++;
     }
+
+    if (data->data->score == WIN_CONDITION) {
+      gameOver();
+      return;
+    }
+
+    spawnFood();
   } else {
     snake->snakeBody.pop_back();
   }
